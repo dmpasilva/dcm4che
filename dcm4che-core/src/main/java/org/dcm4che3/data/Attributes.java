@@ -3029,7 +3029,7 @@ public class Attributes implements Serializable {
         validate(el, result, null);
     }
 
-    private void validate(DataElement el, ValidationResult result,
+    public void validate(DataElement el, ValidationResult result,
             Map<String, Boolean> processedConditions) {
         IOD.Condition condition = el.getCondition();
         if (condition != null) {

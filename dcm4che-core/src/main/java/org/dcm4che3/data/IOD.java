@@ -62,11 +62,22 @@ import org.xml.sax.helpers.DefaultHandler;
 
 /**
  * @author Gunter Zeilinger <gunterze@gmail.com>
+ * @author David Silva <davidmsilva@ua.pt>
  *
  */
 public class IOD extends ArrayList<IOD.DataElement> {
 
-    private static final long serialVersionUID = -5065822488885801576L;
+    private static final long serialVersionUID = -5065822488885801577L; // changed
+
+    private SAXHandler handler;
+
+    /**
+     * Set a custom XML handler
+     * @param handler The custom XML Handler
+     */
+    public void setHandler(SAXHandler handler) {
+        this.handler = handler;
+    }
 
     public enum DataElementType {
         TYPE_0, TYPE_1, TYPE_2, TYPE_3
@@ -392,7 +403,12 @@ public class IOD extends ArrayList<IOD.DataElement> {
         try {
             SAXParserFactory f = SAXParserFactory.newInstance();
             SAXParser parser = f.newSAXParser();
-            parser.parse(uri, new SAXHandler(this));
+
+            if(handler == null)
+                handler = new SAXHandler(this);
+            else handler.addIODtoStack(this);
+
+            parser.parse(uri, handler);
         } catch (SAXException e) {
             throw new IOException("Failed to parse " + uri, e);
         } catch (ParserConfigurationException e) {
@@ -400,7 +416,8 @@ public class IOD extends ArrayList<IOD.DataElement> {
         }
     }
 
-    private static class SAXHandler extends DefaultHandler {
+    //changed SAXHandler to public
+    public static class SAXHandler extends DefaultHandler {
 
         private StringBuilder sb = new StringBuilder();
         private boolean processCharacters;
@@ -415,9 +432,68 @@ public class IOD extends ArrayList<IOD.DataElement> {
         private Map<String, Condition> id2cond = new HashMap<String, Condition>();
         private Locator locator;
 
+        public SAXHandler() {}
+
         public SAXHandler(IOD iod) {
             iodStack.add(iod);
         }
+
+        public void addIODtoStack(IOD iod) {
+            iodStack.add(iod);
+        }
+
+        /**
+         * Add a reference to another IOD. Useful when dealing with multiple XML Files, each one containing a portion of a composite IOD.
+         * @param id The IOD reference ID.
+         * @param iod The IOD object itself.
+         */
+        public void addId2IOD(String id, IOD iod) {
+            id2iod.put(id, iod);
+        }
+
+
+        /**
+         * Add multiple references to another IOD. Useful when dealing with multiple XML Files, each one containing a portion of a composite IOD.
+         * @param map A map with multiple (id, iod) objects
+         */
+        public void addId2IOD(Map<String, IOD> map) {
+            id2iod.putAll(map);
+        }
+
+        /**
+         * Replace id2iod map
+         * @param id2iod the new id2iod
+         */
+        public void setId2iod(Map<String, IOD> id2iod) {
+            this.id2iod = id2iod;
+        }
+
+        /**
+         * Add a condition with a given ID
+         * @param id the condition ID (eg.: contrastWasUsed, checkUserDefinedAttributes, etc.)
+         * @param condition the condition related with this id.
+         */
+        public void addId2Condition(String id, Condition condition) {
+            id2cond.put(id, condition);
+        }
+
+        /**
+         * Add multiple conditions with a given ID
+         * @param map (conditionID, condition)
+         */
+        public void addId2Condition(Map<String, Condition>  map) {
+            id2cond.putAll(map);
+        }
+
+        /**
+         * Replace id2cond
+         * @param id2cond new id2cond map.
+         */
+        public void setId2cond(Map<String, Condition>  id2cond) {
+            this.id2cond = id2cond;
+        }
+
+
 
         @Override
         public void setDocumentLocator(Locator locator) {
@@ -826,6 +902,13 @@ public class IOD extends ArrayList<IOD.DataElement> {
         }
     }
 
+    /**
+     * For custom validation, use this:
+     * IOD iod = new IOD();
+     * iod.setHandler(my_custom_handler);
+     * iod.parse(uri);
+     * iod.trimToSize();
+     */
     public static IOD load(String uri) throws IOException {
         if (uri.startsWith("resource:")) {
             try {
@@ -837,6 +920,23 @@ public class IOD extends ArrayList<IOD.DataElement> {
             uri = new File(uri).toURI().toString();
         }
         IOD iod = new IOD();
+        iod.parse(uri);
+        iod.trimToSize();
+        return iod;
+    }
+
+    public static IOD loadIODWithCustomHandler(String uri, SAXHandler handler) throws IOException {
+        if (uri.startsWith("resource:")) {
+            try {
+                uri = ResourceLocator.getResource(uri.substring(9), IOD.class);
+            } catch (NullPointerException npe) {
+                throw new FileNotFoundException(uri);
+            }
+        } else if (uri.indexOf(':') < 2) {
+            uri = new File(uri).toURI().toString();
+        }
+        IOD iod = new IOD();
+        iod.setHandler(handler);
         iod.parse(uri);
         iod.trimToSize();
         return iod;
