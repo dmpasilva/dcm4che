@@ -39,6 +39,7 @@
 package org.dcm4che3.imageio.codec.jpeg;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 import javax.imageio.stream.ImageInputStream;
 import javax.imageio.stream.ImageInputStreamImpl;
@@ -69,12 +70,7 @@ public class PatchJPEGLSImageInputStream extends ImageInputStreamImpl {
         if (patchJPEGLS == null)
             return;
 
-        byte[] b = new byte[256];
-        iis.mark();
-        readAvailable(b);
-        iis.reset();
-
-        JPEGLSCodingParam param = patchJPEGLS.createJPEGLSCodingParam(b);
+        JPEGLSCodingParam param = patchJPEGLS.createJPEGLSCodingParam(firstBytesOf(iis));
         if (param != null) {
             LOG.debug("Patch JPEG-LS with {}", param);
             this.patchPos = streamPos + param.getOffset();
@@ -82,6 +78,17 @@ public class PatchJPEGLSImageInputStream extends ImageInputStreamImpl {
         }
     }
 
+    private byte[] firstBytesOf(ImageInputStream iis) throws IOException {
+        byte[] b = new byte[256];
+        int n, off = 0, len = b.length;
+        iis.mark();
+        while (len > 0 && (n = iis.read(b, off, len)) > 0) {
+            off += n;
+            len -= n;
+        }
+        iis.reset();
+        return len > 0 ? Arrays.copyOf(b, b.length - len) : b;
+    }
 
     private int readAvailable(byte[] b) throws IOException {
         int nbytes;

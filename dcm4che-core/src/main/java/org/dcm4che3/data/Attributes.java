@@ -471,7 +471,7 @@ public class Attributes implements Serializable {
     public SpecificCharacterSet getSpecificCharacterSet(VR vr) {
         return vr.useSpecificCharacterSet()
                 ? getSpecificCharacterSet()
-                : SpecificCharacterSet.DEFAULT;
+                : SpecificCharacterSet.ASCII;
     }
 
     private double[] decodeDSValue(int index) {
@@ -485,7 +485,7 @@ public class Attributes implements Serializable {
         double[] ds;
         if (value instanceof byte[])
             value = vrs[index].toStrings((byte[]) value, bigEndian,
-                    SpecificCharacterSet.DEFAULT);
+                    SpecificCharacterSet.ASCII);
         if (value instanceof String) {
             String s = (String) value;
             if (s.isEmpty()) {
@@ -518,7 +518,7 @@ public class Attributes implements Serializable {
         int[] is;
         if (value instanceof byte[])
             value = vrs[index].toStrings((byte[]) value, bigEndian,
-                    SpecificCharacterSet.DEFAULT);
+                    SpecificCharacterSet.ASCII);
         if (value instanceof String) {
             String s = (String) value;
             if (s.isEmpty()) {
@@ -1464,7 +1464,7 @@ public class Attributes implements Serializable {
         else if (parent != null)
             return parent.getSpecificCharacterSet();
         else
-            cs = SpecificCharacterSet.DEFAULT;
+            cs = SpecificCharacterSet.getDefaultCharacterSet();
 
         return cs;
     }
@@ -2358,6 +2358,11 @@ public class Attributes implements Serializable {
             VR vr = srcVRs[i];
             Object value = srcValues[i];
             if (TagUtils.isPrivateCreator(tag)) {
+                if (vr != VR.LO) {
+                    LOG.info("Private Creator Element with wrong VR corrected! tag:{}, vr:{}, value:{}",
+                            TagUtils.toString(tag), vr, value);
+                    srcVRs[i] = VR.LO;
+                }
                 continue; // private creators will be automatically added with the private tags
             }
 

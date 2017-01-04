@@ -62,7 +62,6 @@ import org.xml.sax.helpers.DefaultHandler;
 
 /**
  * @author Gunter Zeilinger <gunterze@gmail.com>
- * @author David Silva <davidmsilva@ua.pt>
  *
  */
 public class IOD extends ArrayList<IOD.DataElement> {
@@ -74,6 +73,7 @@ public class IOD extends ArrayList<IOD.DataElement> {
     /**
      * Set a custom XML handler
      * @param handler The custom XML Handler
+     * @author David Silva <davidmsilva@ua.pt>
      */
     public void setHandler(SAXHandler handler) {
         this.handler = handler;
@@ -819,6 +819,10 @@ public class IOD extends ArrayList<IOD.DataElement> {
                 if (locator != null)
                     iod.setLineNumber(locator.getLineNumber());
             }
+
+            // well, if there was a problem, it would happen here. However, we're safe, I assume.
+            // I mean, if idref already exists, it will be added to the dataelement where it is. and that's fine.
+
             getLastDataElement().addItemIOD(iod);
             iodStack.add(iod);
             if (id != null)
