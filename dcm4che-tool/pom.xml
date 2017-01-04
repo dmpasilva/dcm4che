@@ -47,7 +47,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.dcm4che.tool</groupId>
   <artifactId>dcm4che-tool</artifactId>
-  <version>3.3.8-DSILVA-SNAPSHOT</version>
+  <version>3.3.9-DSILVA-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>dcm4che-tool</name>
   <description>DICOM utilities</description>
