@@ -80,7 +80,8 @@ public class IOD extends ArrayList<IOD.DataElement> {
     }
 
     public enum DataElementType {
-        TYPE_0, TYPE_1, TYPE_2, TYPE_3
+        TYPE_0, TYPE_1, TYPE_2, TYPE_3,
+        TYPE_1C, TYPE_2C
     }
 
     public static class DataElement implements Serializable {

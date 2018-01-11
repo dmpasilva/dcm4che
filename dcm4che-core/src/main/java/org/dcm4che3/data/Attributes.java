@@ -3050,15 +3050,16 @@ public class Attributes implements Serializable {
         }
         int index = indexOf(el.tag);
         if (index < 0) {
-            if (el.type == IOD.DataElementType.TYPE_1 
-                    || el.type == IOD.DataElementType.TYPE_2) {
+            if (el.type != IOD.DataElementType.TYPE_0) {
+                //    || el.type == IOD.DataElementType.TYPE_2) {
                 result.addMissingAttribute(el);
             }
             return;
         }
         Object value = values[index];
         if (isEmpty(value)) {
-            if (el.type == IOD.DataElementType.TYPE_1) {
+            if (el.type == IOD.DataElementType.TYPE_1 || 
+                el.type == IOD.DataElementType.TYPE_1C ) {
                 result.addMissingAttributeValue(el);
             }
             return;
